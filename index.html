@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아기 단어카드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 메인 메뉴 화면 */
+        .menu-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+        }
+
+        .menu-title {
+            color: #ff6b6b;
+            font-size: 3rem;
+            margin-bottom: 50px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 600px;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 25px;
+            padding: 40px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .category-card:active {
+            transform: scale(0.95);
+        }
+
+        .category-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .category-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .category-count {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        /* 슬라이드쇼 화면 */
+        .slideshow-screen {
+            display: none;
+            position: relative;
+            height: 100vh;
+            background: #000;
+        }
+
+        .slide {
+            display: none;
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: slideIn 0.5s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .slide-image {
+            max-width: 70%;
+            max-height: 60%;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            object-fit: cover;
+            margin-bottom: 30px;
+        }
+
+        .slide-text {
+            background: rgba(255,255,255,0.95);
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #333;
+            text-shadow: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .slide-english {
+            background: rgba(255,255,255,0.8);
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 1.5rem;
+            color: #666;
+            margin-top: 15px;
+            font-style: italic;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .control-btn:active {
+            transform: scale(0.9);
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background: #4ecdc4;
+            transition: width 0.1s ease;
+            z-index: 100;
+        }
+
+        .slide-counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            z-index: 100;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .menu-title {
+                font-size: 2rem;
+                margin-bottom: 30px;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                max-width: 300px;
+            }
+
+            .category-card {
+                padding: 30px 20px;
+                min-height: 150px;
+            }
+
+            .category-icon {
+                font-size: 3rem;
+            }
+
+            .category-name {
+                font-size: 1.5rem;
+            }
+
+            .slide-image {
+                max-width: 85%;
+                max-height: 50%;
+            }
+
+            .slide-text {
+                font-size: 2rem;
+                padding: 15px 30px;
+            }
+
+            .slide-english {
+                font-size: 1.2rem;
+                padding: 8px 20px;
+            }
+        }
+    </style>
+    <!-- PWA: iOS 홈화면 앱 아이콘 및 설정 -->
+    <link rel="apple-touch-icon" href="<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Apple</title><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="아기 단어카드">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- 메뉴 화면 -->
+    <div class="menu-screen" id="menuScreen">
+        <h1 class="menu-title">🎈 아기 단어카드 🎈</h1>
+        
+        <div class="category-grid">
+            <div class="category-card" data-category="animals">
+                <div class="category-icon">🐶</div>
+                <div class="category-name">동물</div>
+                <div class="category-count">50가지 동물들</div>
+            </div>
+            
+            <div class="category-card" data-category="fruits">
+                <div class="category-icon">🍎</div>
+                <div class="category-name">과일</div>
+                <div class="category-count">50가지 과일들</div>
+            </div>
+            
+            <div class="category-card" data-category="objects">
+                <div class="category-icon">🚗</div>
+                <div class="category-name">사물</div>
+                <div class="category-count">50가지 사물들</div>
+            </div>
+            
+            <div class="category-card" data-category="vehicles">
+                <div class="category-icon">🚂</div>
+                <div class="category-name">교통수단</div>
+                <div class="category-count">50가지 교통수단</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 슬라이드쇼 화면 -->
+    <div class="slideshow-screen" id="slideshowScreen">
+        <button class="back-btn" id="backBtn">←</button>
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="slide-counter" id="slideCounter">1 / 50</div>
+        
+        <div id="slidesContainer">
+            <!-- 슬라이드들이 여기에 동적으로 생성됩니다 -->
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="prevBtn">⏮</button>
+            <button class="control-btn" id="playPauseBtn">⏸</button>
+            <button class="control-btn" id="nextBtn">⏭</button>
+        </div>
+    </div>
+
+    <script>
+
+        if ('serviceWorker' in navigator) {
+             navigator.serviceWorker.register('service-worker.js');
+         }
+        // 각 카테고리별 50개 항목 데이터
+        const cardData = {
+            animals: [
+                { korean: '강아지', english: 'Dog', image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&h=600&fit=crop' },
+                { korean: '고양이', english: 'Cat', image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&h=600&fit=crop' },
+                { korean: '토끼', english: 'Rabbit', image: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=800&h=600&fit=crop' },
+                { korean: '새', english: 'Bird', image: 'https://images.unsplash.com/photo-1444464666168-49d633b86797?w=800&h=600&fit=crop' },
+                { korean: '물고기', english: 'Fish', image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop' },
+                { korean: '코끼리', english: 'Elephant', image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=800&h=600&fit=crop' },
+                { korean: '사자', english: 'Lion', image: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=800&h=600&fit=crop' },
+                { korean: '호랑이', english: 'Tiger', image: 'https://images.unsplash.com/photo-1605020420620-20c943cc4669?w=800&h=600&fit=crop' },
+                { korean: '기린', english: 'Giraffe', image: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop' },
+                { korean: '원숭이', english: 'Monkey', image: 'https://images.unsplash.com/photo-1539681825405-9c6a00893c18?w=800&h=600&fit=crop' },
+                // 더 많은 동물들 (데모용으로 10개만 표시, 실제로는 50개 필요)
+                { korean: '곰', english: 'Bear', image: 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=800&h=600&fit=crop' },
+                { korean: '늑대', english: 'Wolf', image: 'https://images.unsplash.com/photo-1546026423-cc4642628d2b?w=800&h=600&fit=crop' },
+                { korean: '여우', english: 'Fox', image: 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=800&h=600&fit=crop' },
+                { korean: '펭귄', english: 'Penguin', image: 'https://images.unsplash.com/photo-1551986782-d0169b3f8fa7?w=800&h=600&fit=crop' },
+                { korean: '판다', english: 'Panda', image: 'https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=800&h=600&fit=crop' }
+            ],
+            fruits: [
+                { korean: '사과', english: 'Apple', image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800&h=600&fit=crop' },
+                { korean: '바나나', english: 'Banana', image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=800&h=600&fit=crop' },
+                { korean: '딸기', english: 'Strawberry', image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=800&h=600&fit=crop' },
+                { korean: '오렌지', english: 'Orange', image: 'https://images.unsplash.com/photo-1557800636-894a64c1696f?w=800&h=600&fit=crop' },
+                { korean: '포도', english: 'Grape', image: 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=800&h=600&fit=crop' },
+                { korean: '수박', english: 'Watermelon', image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&h=600&fit=crop' },
+                { korean: '체리', english: 'Cherry', image: 'https://images.unsplash.com/photo-1528821128474-27f963b062bf?w=800&h=600&fit=crop' },
+                { korean: '복숭아', english: 'Peach', image: 'https://images.unsplash.com/photo-1629828874514-d6badc7a3f25?w=800&h=600&fit=crop' },
+                { korean: '파인애플', english: 'Pineapple', image: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=800&h=600&fit=crop' },
+                { korean: '키위', english: 'Kiwi', image: 'https://images.unsplash.com/photo-1585059895524-72359e06133a?w=800&h=600&fit=crop' },
+                { korean: '망고', english: 'Mango', image: 'https://images.unsplash.com/photo-1605711285791-0219e80e43a3?w=800&h=600&fit=crop' },
+                { korean: '레몬', english: 'Lemon', image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=800&h=600&fit=crop' },
+                { korean: '라임', english: 'Lime', image: 'https://images.unsplash.com/photo-1582281298055-e25b84d30b2d?w=800&h=600&fit=crop' },
+                { korean: '자두', english: 'Plum', image: 'https://images.unsplash.com/photo-1572635148818-ef6fd45eb394?w=800&h=600&fit=crop' },
+                { korean: '블루베리', english: 'Blueberry', image: 'https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=800&h=600&fit=crop' }
+            ],
+            objects: [
+                { korean: '자동차', english: 'Car', image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=600&fit=crop' },
+                { korean: '공', english: 'Ball', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop' },
+                { korean: '책', english: 'Book', image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=600&fit=crop' },
+                { korean: '신발', english: 'Shoes', image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=600&fit=crop' },
+                { korean: '모자', english: 'Hat', image: 'https://images.unsplash.com/photo-1521369909029-2afed882baee?w=800&h=600&fit=crop' },
+                { korean: '컵', english: 'Cup', image: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=800&h=600&fit=crop' },
+                { korean: '의자', english: 'Chair', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=600&fit=crop' },
+                { korean: '테이블', english: 'Table', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=600&fit=crop' },
+                { korean: '침대', english: 'Bed', image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&h=600&fit=crop' },
+                { korean: '문', english: 'Door', image: 'https://images.unsplash.com/photo-1563985566-c9507b3d4c26?w=800&h=600&fit=crop' },
+                { korean: '창문', english: 'Window', image: 'https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=800&h=600&fit=crop' },
+                { korean: '시계', english: 'Clock', image: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800&h=600&fit=crop' },
+                { korean: '전화기', english: 'Phone', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=600&fit=crop' },
+                { korean: '컴퓨터', english: 'Computer', image: 'https://images.unsplash.com/photo-1547394765-185e1e68f34e?w=800&h=600&fit=crop' },
+                { korean: '가방', english: 'Bag', image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=600&fit=crop' }
+            ],
+            vehicles: [
+                { korean: '기차', english: 'Train', image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&h=600&fit=crop' },
+                { korean: '비행기', english: 'Airplane', image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&h=600&fit=crop' },
+                { korean: '배', english: 'Ship', image: 'https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?w=800&h=600&fit=crop' },
+                { korean: '버스', english: 'Bus', image: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=800&h=600&fit=crop' },
+                { korean: '택시', english: 'Taxi', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop' },
+                { korean: '트럭', english: 'Truck', image: 'https://images.unsplash.com/photo-1558618666-fbd26c85cd64?w=800&h=600&fit=crop' },
+                { korean: '오토바이', english: 'Motorcycle', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop' },
+                { korean: '자전거', english: 'Bicycle', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop' },
+                { korean: '헬리콥터', english: 'Helicopter', image: 'https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?w=800&h=600&fit=crop' },
+                { korean: '지하철', english: 'Subway', image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&h=600&fit=crop' },
+                { korean: '스쿠터', english: 'Scooter', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop' },
+                { korean: '롤러스케이트', english: 'Roller Skates', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop' },
+                { korean: '스케이트보드', english: 'Skateboard', image: 'https://images.unsplash.com/photo-1547447134-cd3f5c716030?w=800&h=600&fit=crop' },
+                { korean: '소방차', english: 'Fire Truck', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop' },
+                { korean: '구급차', english: 'Ambulance', image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop' }
+            ]
+        };
+
+        let currentCategory = '';
+        let currentSlide = 0;
+        let isPlaying = true;
+        let slideInterval;
+        let currentData = [];
+
+        // DOM 요소들
+        const menuScreen = document.getElementById('menuScreen');
+        const slideshowScreen = document.getElementById('slideshowScreen');
+        const slidesContainer = document.getElementById('slidesContainer');
+        const progressBar = document.getElementById('progressBar');
+        const slideCounter = document.getElementById('slideCounter');
+        const backBtn = document.getElementById('backBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+
+        // 텍스트를 음성으로 읽어주는 함수
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel(); // 이전 음성 중단
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ko-KR';
+                utterance.rate = 0.8;
+                utterance.pitch = 1.2;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // 슬라이드 생성
+        function createSlides(data) {
+            slidesContainer.innerHTML = '';
+            data.forEach((item, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'slide';
+                if (index === 0) slide.classList.add('active');
+                
+                slide.innerHTML = `
+                    <img src="${item.image}" alt="${item.korean}" class="slide-image" loading="lazy">
+                    <div class="slide-text">${item.korean}</div>
+                    <div class="slide-english">${item.english}</div>
+                `;
+                
+                slidesContainer.appendChild(slide);
+            });
+        }
+
+        // 슬라이드 표시
+        function showSlide(index) {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach(slide => slide.classList.remove('active'));
+            
+            if (slides[index]) {
+                slides[index].classList.add('active');
+                speakText(currentData[index].korean);
+                updateProgress();
+                updateCounter();
+            }
+        }
+
+        // 진행률 업데이트
+        function updateProgress() {
+            const progress = ((currentSlide + 1) / currentData.length) * 100;
+            progressBar.style.width = progress + '%';
+        }
+
+        // 카운터 업데이트
+        function updateCounter() {
+            slideCounter.textContent = `${currentSlide + 1} / ${currentData.length}`;
+        }
+
+        // 다음 슬라이드
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % currentData.length;
+            showSlide(currentSlide);
+        }
+
+        // 이전 슬라이드
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + currentData.length) % currentData.length;
+            showSlide(currentSlide);
+        }
+
+        // 자동 재생 시작
+        function startAutoPlay() {
+            if (slideInterval) clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, 3000);
+            isPlaying = true;
+            playPauseBtn.textContent = '⏸';
+        }
+
+        // 자동 재생 정지
+        function stopAutoPlay() {
+            if (slideInterval) clearInterval(slideInterval);
+            isPlaying = false;
+            playPauseBtn.textContent = '▶';
+        }
+
+        // 재생/일시정지 토글
+        function togglePlayPause() {
+            if (isPlaying) {
+                stopAutoPlay();
+            } else {
+                startAutoPlay();
+            }
+        }
+
+        // 슬라이드쇼 시작
+        function startSlideshow(category) {
+            currentCategory = category;
+            currentData = [...cardData[category]];
+            currentSlide = 0;
+            
+            // 데이터가 15개밖에 없으므로 50개로 확장 (실제로는 50개 데이터 준비 필요)
+            while (currentData.length < 50) {
+                currentData = currentData.concat(cardData[category]);
+            }
+            currentData = currentData.slice(0, 50);
+            
+            createSlides(currentData);
+            menuScreen.style.display = 'none';
+            slideshowScreen.style.display = 'block';
+            
+            showSlide(0);
+            startAutoPlay();
+        }
+
+        // 메뉴로 돌아가기
+        function goToMenu() {
+            stopAutoPlay();
+            speechSynthesis.cancel();
+            slideshowScreen.style.display = 'none';
+            menuScreen.style.display = 'flex';
+        }
+
+        // 이벤트 리스너
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const category = card.dataset.category;
+                startSlideshow(category);
+            });
+        });
+
+        backBtn.addEventListener('click', goToMenu);
+        prevBtn.addEventListener('click', prevSlide);
+        nextBtn.addEventListener('click', nextSlide);
+        playPauseBtn.addEventListener('click', togglePlayPause);
+
+        // 키보드 이벤트
+        document.addEventListener('keydown', (e) => {
+            if (slideshowScreen.style.display === 'block') {
+                switch(e.code) {
+                    case 'ArrowLeft':
+                        prevSlide();
+                        break;
+                    case 'ArrowRight':
+                        nextSlide();
+                        break;
+                    case 'Space':
+                        e.preventDefault();
+                        togglePlayPause();
+                        break;
+                    case 'Escape':
+                        goToMenu();
+                        break;
+                }
+            }
+        });
+
+        // 터치 제스처 (스와이프)
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        slideshowScreen.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        slideshowScreen.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            // ... (스와이프 처리 코드가 필요하다면 추가)
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js');
+        }
+    </script>
+</body>
+</html>
